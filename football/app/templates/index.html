@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Football Data</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container mt-5">
+        
+        
+        
+        <h2>Fetch and Insert API Data</h2>
+        <form action="{{ url_for('fetch_and_insert_api_route') }}" method="get">
+            <label for="number">How many past games of this season would you like to add to the database?:</label>
+            <input type="number" name="number" id="number" min="1" max="20" placeholder="Enter a number">
+            
+            <!-- Dropdown menu for selecting a team -->
+            <div class="form-group mt-2">
+                <label for="team_select">Select a Team:</label>
+                <select class="form-control" id="team_select" name="team_id">
+                    {% for index, row in teams_df.iterrows() %}
+                        <option value="{{ row['id'] }}">{{ row['team_name'] }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <button type="submit" class="btn btn-primary">Fetch and Insert API Data</button>
+        </form>
+        
+        <h2>Overall Graphs</h2>
+        
+
+        <div>
+            <img src="data:image/png;base64,{{ plot_base64 }}" alt="Goals Histograms">
+        </div>
+        <h2>Individual Graphs</h2>
+        <form action="{{ url_for('display_data') }}" method="get">
+            <label for="team_select">For whom would you like the last graph to be?</label>
+            <div class="form-group mt-2">
+                <label for="team_select">Select a Team:</label>
+                <select class="form-control" id="team_select" name="team_id">
+                    {% for index, row in teams_df.iterrows() %}
+                        <option value="{{ row['team_name'] }}">{{ row['team_name'] }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary">Generate Individual Graphs</button>
+        </form>
+        <div>
+            <img src="data:image/png;base64,{{ plot_base64_2 }}" alt="Goals Histograms">
+        </div>
+        <h2>Add New Data</h2>
+        <form method="POST" action="{{ url_for('add_data') }}">
+            <div class="form-group">
+                <label for="date">Date:</label>
+                <input type="text" id="date" name="date" pattern="\d{1,2}/\d{1,2}/\d{4}" placeholder="dd/mm/yyyy" required>
+            </div>
+        
+            <div class="form-group">
+                <label for="time">Time:</label>
+                <input type="text" class="form-control" name="time" pattern="^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$" placeholder="HH:mm" required>
+            </div>
+        
+            <div class="form-group">
+                <label for="home_team">Home Team:</label>
+                <input list="homeTeamSuggestions" class="form-control" name="home_team" maxlength="40" required>
+                <datalist id="homeTeamSuggestions">
+                    {% for index, row in teams_df.iterrows() %}
+                        <option value="{{ row['team_name'] }}">
+                    {% endfor %}
+                </datalist>
+            </div>
+            
+            
+            <div class="form-group">
+                <label for="fthg">Home Team Goals:</label>
+                <input type="number" class="form-control" name="fthg" max="30" required>
+            </div>
+        
+            <div class="form-group">
+                <label for="ftag">Away Team Goals:</label>
+                <input type="number" class="form-control" name="ftag" max="30" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="away_team">Away Team:</label>
+                <input list="awayTeamSuggestions" class="form-control" name="away_team" maxlength="40" required>
+                <datalist id="awayTeamSuggestions">
+                    {% for index, row in teams_df.iterrows() %}
+                        <option value="{{ row['team_name'] }}">
+                    {% endfor %}
+                </datalist>
+            </div>
+        
+            <button type="submit" class="btn btn-primary">Add Data</button>
+        </form>
+        
+        
+        <h1>Football Data</h1>
+        <div style="max-height: 600px; overflow-y: auto;">
+            <table class="table table-bordered table-striped">
+                <thead class="thead-dark">
+                    <tr>
+                        <th>Index</th>
+                        <th>Date</th>
+                        <th>Time</th>
+                        <th>Home Team</th>
+                        <th>Home Team Goals</th>
+                        <th>Away Team Goals</th>
+                        <th>Away Team</th>
+                        <th>Delete</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in df.itertuples() %}
+                    <tr>
+                        <td>{{ row.index }}</td>
+                        <td>{{ row.Date}}</td>
+                        <td>{{ row.Time }}</td>
+                        <td>{{ row.HomeTeam }}</td>
+                        <td>{{ row.FTHG }}</td>
+                        <td>{{ row.FTAG }}</td>
+                        <td>{{ row.AwayTeam }}</td>
+                        <td>
+                            <form method="POST" action="{{ url_for('delete_data', row_index=row.index) }}">
+                                <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="container mt-4">
+            <h3>Current Premier league Table</h3>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Position</th>
+                        <th>Team Name</th>
+                        <th>Played Games</th>
+                        <th>Won</th>
+                        <th>Draw</th>
+                        <th>Lost</th>
+                        <th>Points</th>
+                        <th>Goals For</th>
+                        <th>Goals Against</th>
+                        <th>Goal Difference</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for index, row in teams_df.iterrows() %}
+                        <tr>
+                            <td>{{ row['position'] }}</td>
+                            <td>{{ row['team_name'] }}</td>
+                            <td>{{ row['playedGames'] }}</td>
+                            <td>{{ row['won'] }}</td>
+                            <td>{{ row['draw'] }}</td>
+                            <td>{{ row['lost'] }}</td>
+                            <td>{{ row['points'] }}</td>
+                            <td>{{ row['goalsFor'] }}</td>
+                            <td>{{ row['goalsAgainst'] }}</td>
+                            <td>{{ row['goalDifference'] }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+
+        
+
+    </div>
+</body>
+</html>

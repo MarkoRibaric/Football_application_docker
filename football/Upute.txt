@@ -1,0 +1,6 @@
+1. pip install -r requirements.txt 
+2. docker-compose up --build -d --scale app=2
+#Nekad server malo potraje da se upali, pa je dobro probati sljedeću komandu nakon minutu ili dvije
+3. bash setup_db.sh
+4. python import_data.py
+5. Možete ići na localhost adresu
