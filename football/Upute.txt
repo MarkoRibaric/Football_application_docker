@@ -3,4 +3,12 @@
 #Nekad server malo potraje da se upali, pa je dobro probati sljedeću komandu nakon minutu ili dvije
 3. bash setup_db.sh
 4. python import_data.py
+5. python DownloadData.py (Moguce da su podaci već preuzeti u direktoriju "csv_files")
+6. python ImportDataFromCSV.py
+7. python RandomForestModel.py
 5. Možete ići na localhost adresu
+
+
+za provjeru točnosti modela:
+python TestingModels.py
+Također možemo vidjeti rezultat u "TestiranjeModelaRezultat.txt

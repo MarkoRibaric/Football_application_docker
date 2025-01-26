@@ -1,0 +1,69 @@
+TESTIRANJE MODELA TEXT FILE
+(Marko1) ➜  football python TestingModels.py
+Train set size: 52213
+Test set size: 13054
+LOGISTIC REGRESSION Accuracy: 0.719626168224299
+LOGISTIC REGRESSION Classification Report:
+               precision    recall  f1-score   support
+
+           0       0.74      0.79      0.76      7465
+           1       0.69      0.62      0.65      5589
+
+    accuracy                           0.72     13054
+   macro avg       0.71      0.71      0.71     13054
+weighted avg       0.72      0.72      0.72     13054
+
+DECISION TREE Accuracy: 0.9040140952964608
+DECISION TREE Classification Report:
+               precision    recall  f1-score   support
+
+           0       0.91      0.92      0.92      7465
+           1       0.90      0.88      0.89      5589
+
+    accuracy                           0.90     13054
+   macro avg       0.90      0.90      0.90     13054
+weighted avg       0.90      0.90      0.90     13054
+
+RANDOM FOREST Accuracy: 0.9119810019917267
+RANDOM FOREST Classification Report:
+               precision    recall  f1-score   support
+
+           0       0.92      0.93      0.92      7465
+           1       0.91      0.88      0.90      5589
+
+    accuracy                           0.91     13054
+   macro avg       0.91      0.91      0.91     13054
+weighted avg       0.91      0.91      0.91     13054
+
+SVM Accuracy: 0.7192431438639497
+SVM Classification Report:
+               precision    recall  f1-score   support
+
+           0       0.73      0.82      0.77      7465
+           1       0.71      0.59      0.64      5589
+
+    accuracy                           0.72     13054
+   macro avg       0.72      0.70      0.71     13054
+weighted avg       0.72      0.72      0.71     13054
+
+GRADIENT BOOSTING Accuracy: 0.7193197487360196
+GRADIENT BOOSTING Classification Report:
+               precision    recall  f1-score   support
+
+           0       0.74      0.79      0.76      7465
+           1       0.69      0.62      0.65      5589
+
+    accuracy                           0.72     13054
+   macro avg       0.71      0.71      0.71     13054
+weighted avg       0.72      0.72      0.72     13054
+
+NEURAL NETWORK Accuracy: 0.7199325877125785
+NEURAL NETWORK Classification Report:
+               precision    recall  f1-score   support
+
+           0       0.76      0.74      0.75      7465
+           1       0.67      0.69      0.68      5589
+
+    accuracy                           0.72     13054
+   macro avg       0.71      0.72      0.72     13054
+weighted avg       0.72      0.72      0.72     13054

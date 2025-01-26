@@ -4,3 +4,6 @@ Werkzeug==2.2.2
 pandas
 requests
 mysql-connector-python
+cassandra-driver
+scikit-learn
+dill

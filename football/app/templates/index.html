@@ -8,9 +8,79 @@
 </head>
 <body>
     <div class="container mt-5">
+        <h2>Predict Match Result</h2>
+        <form action="{{ url_for('predict_result') }}" method="post">
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label for="hshots">Home Shots:</label>
+                    <input type="number" class="form-control" name="hshots" id="hshots" required>
+                </div>
+                <div class="form-group col-md-6">
+                    <label for="ashots">Away Shots:</label>
+                    <input type="number" class="form-control" name="ashots" id="ashots" required>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label for="hstarget">Home Shots on Target:</label>
+                    <input type="number" class="form-control" name="hstarget" id="hstarget" required>
+                </div>
+                <div class="form-group col-md-6">
+                    <label for="astarget">Away Shots on Target:</label>
+                    <input type="number" class="form-control" name="astarget" id="astarget" required>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label for="hy">Home Yellow Cards:</label>
+                    <input type="number" class="form-control" name="hy" id="hy" required>
+                </div>
+                <div class="form-group col-md-6">
+                    <label for="ay">Away Yellow Cards:</label>
+                    <input type="number" class="form-control" name="ay" id="ay" required>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label for="hr">Home Red Cards:</label>
+                    <input type="number" class="form-control" name="hr" id="hr" required>
+                </div>
+                <div class="form-group col-md-6">
+                    <label for="ar">Away Red Cards:</label>
+                    <input type="number" class="form-control" name="ar" id="ar" required>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary">Predict</button>
+        </form>
         
-        
-        
+
+        <div id="prediction_result">
+            {% if prediction %}
+                <h3>Prediction: {{ prediction }}</h3>
+            {% endif %}
+            {% if input_data %}
+                <h4>Input Data:</h4>
+                <ul>
+                    <li>Home Shots: {{ input_data[0] }}</li>
+                    <li>Away Shots: {{ input_data[1] }}</li>
+                    <li>Home Shots on Target: {{ input_data[2] }}</li>
+                    <li>Away Shots on Target: {{ input_data[3] }}</li>
+                    <li>Home Yellow Cards: {{ input_data[4] }}</li>
+                    <li>Away Yellow Cards: {{ input_data[5] }}</li>
+                    <li>Home Red Cards: {{ input_data[6] }}</li>
+                    <li>Away Red Cards: {{ input_data[7] }}</li>
+                </ul>
+            {% endif %}
+        </div>
+
+        {% if plot_base64_7 %}
+            <div>
+                <h3>SHAP Waterfall Plot</h3>
+                <img src="data:image/png;base64,{{ plot_base64_7 }}" alt="SHAP Waterfall Plot">
+            </div>
+        {% endif %}
+
+
         <h2>Fetch and Insert API Data</h2>
         <form action="{{ url_for('fetch_and_insert_api_route') }}" method="get">
             <label for="number">How many past games of this season would you like to add to the database?:</label>

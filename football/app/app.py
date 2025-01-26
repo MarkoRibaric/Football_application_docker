@@ -6,10 +6,21 @@ import matplotlib.pyplot as plt
 from io import BytesIO
 import base64
 from datetime import datetime
-
+import dill
+import sklearn
+import ast
+import shap
+import logging
+from flask import session, jsonify
+logging.basicConfig(level=logging.DEBUG)
+from shap import Explanation
 app = Flask(__name__)
+model_filename = 'random_forest_model.pkl'
+with open(model_filename, 'rb') as file:
+    model = dill.load(file)
 
-# Database connection configuration
+app.secret_key = 'yazjazjazjaz'
+
 db_config = {
     'host': "database_master",
     'user': 'my_db_user',
@@ -23,23 +34,26 @@ engine = create_engine(f"mysql+mysqlconnector://{db_config['user']}:{db_config['
 
 def get_team_list():
     try:
-        # Create a database connection
         with engine.connect() as connection:
-            # Execute a query to fetch the required columns from the teams table and order by position
             teams_query = text("SELECT id, position, team_name, playedGames, won, draw, lost, points, goalsFor, goalsAgainst, goalDifference FROM teams ORDER BY position")
             teams_df = pd.read_sql_query(teams_query, connection)
         return teams_df
     except exc.SQLAlchemyError as e:
-        # Handle any potential errors (e.g., database connection issues)
         print(f"Error fetching team list: {e}")
         return None
 
 
-# Define a route to display the data
 @app.route('/')
 def display_data():
+    prediction = request.args.get('prediction')
+    input_data=request.args.get('input_data')
+    custom_game_json = request.args.get('custom_game_json')
+    plot_base64_7 = session.get('plot_base64_7', None)
+    if (input_data):
+        input_data = [int(i) for i in input_data.split(",")]
     inspector = inspect(engine)
-    
+    print(input_data)
+  
     if 'football_data' in inspector.get_table_names():
         query = "SELECT * FROM football_data"
         df = pd.read_sql_query(query, engine)
@@ -134,8 +148,6 @@ def display_data():
         df_subset['Date'] = pd.to_datetime(df_subset['Date'], format='%d/%m/%Y')
 
         df_subset['Month'] = df_subset['Date'].dt.month_name()
-
-
         monthly_distribution = df_subset['Month'].value_counts().sort_index()
         
 
@@ -147,13 +159,49 @@ def display_data():
 
         for i, v in enumerate(monthly_distribution):
             axes2[1, 1].text(i, v + 0.1, str(v), ha='center', va='bottom', fontsize=10)
+        
 
+
+        if custom_game_json:
+            custom_game_dict = ast.literal_eval(custom_game_json) 
+
+            custom_game_df = pd.DataFrame([custom_game_dict])
+
+            # Make sure the columns match the order expected by the model
+            custom_game_df = custom_game_df[['hshots', 'ashots', 'hstarget', 'astarget', 'hy', 'ay', 'hr', 'ar']]
+
+            predicted_class = model.predict(custom_game_df)[0]
+            predicted_class_proba = model.predict_proba(custom_game_df)[0]
+
+            explainer = shap.TreeExplainer(model)
+            shap_values_custom = explainer(custom_game_df)
+
+            exp_custom = shap.Explanation(
+                shap_values_custom.values[:, :, predicted_class],
+                shap_values_custom.base_values[:, predicted_class],
+                data=custom_game_df.values,
+                feature_names=custom_game_df.columns
+            )
+
+            plt.figure(figsize=(12, 6))
+            shap.waterfall_plot(exp_custom[0], show=False)
+
+            plot_image = BytesIO()
+            plt.savefig(plot_image, format='png', bbox_inches='tight')
+            plt.close()
+
+            plot_base64_7 = base64.b64encode(plot_image.getvalue()).decode('utf-8')
+
+
+        else:
+            custom_game_df = None
+            
                                 
         plt.tight_layout()
 
         plot_image = BytesIO()
-        plt.savefig(plot_image, format='png')
-        plot_image.seek(0)
+        plt.savefig(plot_image, format='png', bbox_inches='tight', dpi=100)
+        plt.close()
         plot_base64_2 = base64.b64encode(plot_image.getvalue()).decode('utf-8')
 
 
@@ -163,10 +211,12 @@ def display_data():
 
 
         teams_df = get_team_list()
+
     if df is not None:
-        return render_template('index.html', df=df, table_html=table_html, plot_base64=plot_base64, teams_df=teams_df, plot_base64_2=plot_base64_2)
+        return render_template('index.html', df=df, table_html=table_html, plot_base64=plot_base64, teams_df=teams_df, plot_base64_2=plot_base64_2, prediction=prediction, input_data=input_data, plot_base64_7=plot_base64_7)
+
     else:
-        return render_template('index.html', table_html='', plot_base64='', plot_base64_2='')
+        return render_template('index.html', table_html='', plot_base64='', plot_base64_2='', prediction='', input_data='')
 
 @app.route('/add_data', methods=['POST'])
 def add_data():
@@ -289,6 +339,46 @@ def fetch_and_insert_api_route():
     team_id = request.args.get('team_id')
     fetch_and_insert_api_data(selected_number, team_id)
     return redirect(url_for('display_data'))
+
+@app.route('/predict_result', methods=['POST'])
+def predict_result():
+    hshots = int(request.form['hshots'])
+    ashots = int(request.form['ashots'])
+    hstarget = int(request.form['hstarget'])
+    astarget = int(request.form['astarget'])
+    hy = int(request.form['hy'])
+    ay = int(request.form['ay'])
+    hr = int(request.form['hr'])
+    ar = int(request.form['ar'])
+
+    input_data = [[hshots, ashots, hstarget, astarget, hy, ay, hr, ar]]
+    prediction = model.predict(input_data)
+
+    input_data = [hshots, ashots, hstarget, astarget, hy, ay, hr, ar]
+    if prediction == 1:
+        result="Home Team Wins"
+    elif prediction == 2:
+        result = "Away Team Wins"
+    else:
+        result = "Draw"
+    print(input_data)
+
+    custom_game = {
+    'hshots': hshots,
+    'ashots': ashots,
+    'hstarget': hstarget,
+    'astarget': astarget,
+    'hy': hy,
+    'ay': ay,
+    'hr': hr,
+    'ar': ar
+    }
+
+    custom_game_df = pd.DataFrame([custom_game])
+
+
+    custom_game_json = jsonify(custom_game).data.decode('utf-8')
+    return redirect(url_for('display_data', prediction=result, input_data=",".join([str(i) for i in input_data]), custom_game_json=custom_game_json))
 
 
 if __name__ == '__main__':
